@@ -1,0 +1,73 @@
+hf_user: AmareshHebbar
+base_model: HuggingFaceTB/SmolLM2-1.7B
+base_label: SmolLM2 1.7B
+repo_prefix: Ternary1B_SmolLM2_1.7B
+dataset_name: Ternary1B_Data_SmolLM2_1.7B
+private: false
+seed: 42
+gpu_cost_per_hour: 1.0
+
+collection:
+  title: Ternary1B
+  description: SmolLM2 1.7B squeezed to 2 bit and 1.58 bit ternary weights. GPTQ, AWQ, LoRA repair, QAT and BitNet on one table.
+
+paths:
+  work: /workspace/ternary1b_runs
+
+quant:
+  group: 64
+  calib_batch: 8
+  gptq_damp: 0.01
+  awq_grid: 20
+  awq_rows: 4096
+  hqq_iters: 20
+
+calib:
+  n: 128
+  seq_len: 2048
+
+train:
+  seq_len: 1024
+  micro_batch: 8
+  grad_accum: 4
+  logits_chunk: 256
+  kd_weight: 1.0
+  kd_temp: 1.0
+  weight_decay: 0.0
+
+heal:
+  r: 64
+  alpha: 128
+  lr: 2.0e-4
+  steps: 300
+  warmup_steps: 20
+
+qat:
+  lr: 2.0e-5
+  steps: 1800
+  warmup_steps: 50
+
+bitnet:
+  lr: 8.0e-5
+  steps: 1800
+  warmup_steps: 50
+  lambda_warmup_frac: 0.3
+
+eval:
+  ppl_seq: 2048
+  tasks: [hellaswag, arc_easy, piqa, mmlu]
+  limit: 1000
+  batch_size: 32
+  quick_tasks: [arc_easy]
+  quick_limit: 200
+  quick_windows: 40
+  gate_max_ppl: 1000
+  gate_unpack_tol: 0.02
+
+cpu_bench:
+  enabled: true
+  llama_cpp_tag: b6500
+  threads: null
+  prompt_tokens: 128
+  gen_tokens: 64
+  repeats: 3
