@@ -92,40 +92,39 @@ def hqq_int2(w, g, iters=20, lp=0.7, beta=10.0, kappa=1.01):
     return {"format": "int2", "codes": codes.reshape(out, inp).to(torch.uint8), "scales": (1.0 / inv).reshape(out, ng), "zeros": zero.reshape(out, ng)}
 
 
-def gptq_int2(w, H, g, blocksize=128, damp=0.01):
+def gptq_int2(w, H, g, blocksize=128, damp=0.01, act_order=True):
     W = w.float().clone()
     out, cols = W.shape
     H = H.clone()
     dead = torch.diag(H) == 0
     H[dead, dead] = 1
     W[:, dead] = 0
+    scales, zeros = minmax_params(group_view(W, g))
+    perm = torch.argsort(torch.diag(H), descending=True) if act_order else torch.arange(cols, device=W.device)
+    inv = torch.argsort(perm)
+    W = W[:, perm]
+    H = H[perm][:, perm]
     H += damp * torch.mean(torch.diag(H)) * torch.eye(cols, device=W.device)
     L = torch.linalg.cholesky(H)
     Hinv = torch.linalg.cholesky(torch.cholesky_inverse(L), upper=True)
-    codes = torch.zeros_like(W, dtype=torch.uint8)
-    scales = torch.zeros(out, cols // g, device=W.device)
-    zeros = torch.zeros(out, cols // g, device=W.device)
+    gidx = perm // g
+    Q = torch.zeros_like(W)
     for i1 in range(0, cols, blocksize):
         i2 = min(i1 + blocksize, cols)
         W1 = W[:, i1:i2].clone()
         Err1 = torch.zeros_like(W1)
         Hinv1 = Hinv[i1:i2, i1:i2]
         for i in range(i2 - i1):
-            col = i1 + i
-            if col % g == 0:
-                blk = torch.cat([W1[:, i:], W[:, i2:]], dim=1)[:, :g]
-                s, z = minmax_params(blk[:, None, :])
-                scales[:, col // g], zeros[:, col // g] = s[:, 0], z[:, 0]
-            s, z = scales[:, col // g], zeros[:, col // g]
+            gi = gidx[i1 + i]
+            s, z = scales[:, gi], zeros[:, gi]
             wcol = W1[:, i]
             q = torch.clamp(torch.round(wcol / s) + z, 0, 3)
-            codes[:, col] = q.to(torch.uint8)
-            deq = (q - z) * s
-            err = (wcol - deq) / Hinv1[i, i]
+            Q[:, i1 + i] = q
+            err = (wcol - (q - z) * s) / Hinv1[i, i]
             W1[:, i:] -= err[:, None] * Hinv1[i, i:][None, :]
             Err1[:, i] = err
         W[:, i2:] -= Err1 @ Hinv[i1:i2, i2:]
-    return {"format": "int2", "codes": codes, "scales": scales, "zeros": zeros}
+    return {"format": "int2", "codes": Q[:, inv].to(torch.uint8), "scales": scales, "zeros": zeros}
 
 
 def awq_int2(w, X, act_mean, g, grid=20):

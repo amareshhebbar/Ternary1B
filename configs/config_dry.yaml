@@ -19,7 +19,7 @@ quant:
   awq_rows: 4096
   hqq_iters: 20
 calib:
-  n: 16
+  n: 64
   seq_len: 512
 train:
   seq_len: 512
@@ -55,6 +55,7 @@ eval:
   quick_limit: 20
   quick_windows: 5
   gate_max_ppl: 1000000000.0
+  gate_vs_rounding: 10.0
   gate_unpack_tol: 0.02
   full_windows: 20
 cpu_bench:
