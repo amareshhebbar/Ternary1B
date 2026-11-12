@@ -91,7 +91,7 @@ def run_suite(cfg, model, tok, tag, mode, size):
     t0 = time.time()
     quick = mode == "quick"
     banner(f"[{tag} | {mode}] WikiText2 perplexity")
-    ppl = wikitext_ppl(cfg, model, cfg["eval"]["quick_windows"] if quick else None)
+    ppl = wikitext_ppl(cfg, model, cfg["eval"]["quick_windows"] if quick else cfg["eval"].get("full_windows"))
     print(f"  wikitext2 ppl {ppl:.3f}", flush=True)
     banner(f"[{tag} | {mode}] benchmarks")
     tasks = lm_eval_tasks(cfg, model, tok, quick)

@@ -1,0 +1,66 @@
+hf_user: AmareshHebbar
+base_model: HuggingFaceTB/SmolLM2-1.7B
+base_label: SmolLM2 1.7B
+repo_prefix: Ternary1BDRY_SmolLM2_1.7B
+dataset_name: Ternary1BDRY_Data_SmolLM2_1.7B
+private: true
+seed: 42
+gpu_cost_per_hour: 1.0
+collection:
+  title: Ternary1B dry run
+  description: Throwaway dry run of the Ternary1B pipeline. Safe to delete.
+paths:
+  work: /workspace/ternary1b_dry
+quant:
+  group: 64
+  calib_batch: 8
+  gptq_damp: 0.01
+  awq_grid: 20
+  awq_rows: 4096
+  hqq_iters: 20
+calib:
+  n: 16
+  seq_len: 512
+train:
+  seq_len: 512
+  micro_batch: 4
+  grad_accum: 2
+  logits_chunk: 256
+  kd_weight: 1.0
+  kd_temp: 1.0
+  weight_decay: 0.0
+heal:
+  r: 64
+  alpha: 128
+  lr: 0.0002
+  steps: 4
+  warmup_steps: 1
+qat:
+  lr: 2.0e-05
+  steps: 4
+  warmup_steps: 1
+bitnet:
+  lr: 8.0e-05
+  steps: 4
+  warmup_steps: 1
+  lambda_warmup_frac: 0.3
+eval:
+  ppl_seq: 2048
+  tasks:
+  - arc_easy
+  limit: 50
+  batch_size: 32
+  quick_tasks:
+  - arc_easy
+  quick_limit: 20
+  quick_windows: 5
+  gate_max_ppl: 1000000000.0
+  gate_unpack_tol: 0.02
+  full_windows: 20
+cpu_bench:
+  enabled: true
+  llama_cpp_tag: b6500
+  threads: null
+  prompt_tokens: 128
+  gen_tokens: 64
+  repeats: 3

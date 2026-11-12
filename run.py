@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 
 load_dotenv(ROOT / ".env", override=False)
 os.environ.setdefault("HF_HUB_ENABLE_HF_TRANSFER", "1")
+os.environ["MPLBACKEND"] = "Agg"
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 os.environ.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
 
