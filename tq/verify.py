@@ -28,10 +28,13 @@ def verify_model(cfg, name):
     local = wpath(cfg, "verify", name)
     if local.exists():
         shutil.rmtree(local)
-    snapshot_download(repo, local_dir=str(local), ignore_patterns=["training/*", "assets/*", "eval/*"], force_download=True)
-    worst, meta = compare_unpacked(local)
-    print(f"  packed codes rebuild the bf16 weights with worst relative error {worst:.2e} ({meta.get('format')})", flush=True)
-    res = eval_model(cfg, name, "quick", str(local))
+    try:
+        snapshot_download(repo, local_dir=str(local), ignore_patterns=["training/*", "assets/*", "eval/*"], force_download=True)
+        worst, meta = compare_unpacked(local)
+        print(f"  packed codes rebuild the bf16 weights with worst relative error {worst:.2e} ({meta.get('format')})", flush=True)
+        res = eval_model(cfg, name, "quick", str(local))
+    finally:
+        shutil.rmtree(local, ignore_errors=True)
     ppl = res["wikitext_ppl"]
     ref_tag = "base_rtn_ternary" if name == "bitnet" else "base_rtn2"
     ref = read_json(results_path(cfg, ref_tag, "full"), {}).get("wikitext_ppl")
