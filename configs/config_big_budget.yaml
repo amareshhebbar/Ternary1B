@@ -28,8 +28,8 @@ calib:
 
 train:
   seq_len: 1024
-  micro_batch: 8
-  grad_accum: 4
+  micro_batch: 2
+  grad_accum: 16
   logits_chunk: 256
   kd_weight: 1.0
   kd_temp: 1.0
@@ -62,6 +62,7 @@ eval:
   quick_limit: 200
   quick_windows: 40
   gate_max_ppl: 1000
+  gate_vs_rounding: 2.0
   gate_unpack_tol: 0.02
 
 cpu_bench:
