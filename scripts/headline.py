@@ -91,7 +91,7 @@ def markdown(cfg, rows, best2):
         f"**Headline:** {sentence(cfg, rows, best2)}",
         "",
         "Size is the real packed file size: 2 bit or ternary codes plus their scales, with embeddings kept in 16 bit. Perplexity is on WikiText2 test (lower is better). "
-        f"Benchmarks are zero shot accuracy from lm evaluation harness{f', up to {cfg['eval']['limit']} examples per task' if cfg['eval'].get('limit') else ''}.",
+        "Benchmarks are zero shot accuracy from lm evaluation harness" + (f", up to {cfg['eval']['limit']} examples per task" if cfg["eval"].get("limit") else "") + ".",
         "",
         "| Model | Bits per weight | Size (MB) | Smaller by | WikiText2 perplexity | " + " | ".join(tasks) + " | Benchmark mean |",
         "|" + "---|" * (6 + len(tasks)),
